@@ -1,0 +1,153 @@
+
+-- NANAHHB AIM V3
+-- Roblox Studio - LocalScript
+-- Menu kéo được, thu nhỏ/mở lại
+-- Viền menu và FOV cầu vồng
+-- Aim Assist dành cho NPC/Bot
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+local enabled = false
+local fovSize = 150
+local smoothness = 0.25
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "NANAHHBAIMV3"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame")
+main.Size = UDim2.fromOffset(280, 260)
+main.Position = UDim2.new(0.5, -140, 0.5, -130)
+main.BackgroundColor3 = Color3.fromRGB(18,18,24)
+main.Parent = gui
+
+Instance.new("UICorner", main).CornerRadius =
+    UDim.new(0, 12)
+
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 2
+stroke.Parent = main
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -50, 0, 45)
+title.BackgroundTransparency = 1
+title.Text = "NANAHHB AIM V3"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextSize = 19
+title.Font = Enum.Font.GothamBold
+title.Parent = main
+
+local function button(name, y)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, -30, 0, 38)
+    b.Position = UDim2.fromOffset(15, y)
+    b.BackgroundColor3 = Color3.fromRGB(38,38,50)
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Text = name
+    b.TextSize = 14
+    b.Font = Enum.Font.GothamBold
+    b.Parent = main
+    Instance.new("UICorner", b).CornerRadius =
+        UDim.new(0, 8)
+    return b
+end
+
+local toggle = button("AIM: OFF", 65)
+local fovButton = button("FOV: ON", 110)
+local hide = button("MINIMIZE", 155)
+
+-- FOV
+local circle = Instance.new("Frame")
+circle.Size = UDim2.fromOffset(fovSize, fovSize)
+circle.AnchorPoint = Vector2.new(0.5,0.5)
+circle.Position = UDim2.fromScale(0.5,0.5)
+circle.BackgroundTransparency = 1
+circle.Parent = gui
+
+local circleCorner = Instance.new("UICorner")
+circleCorner.CornerRadius = UDim.new(1,0)
+circleCorner.Parent = circle
+
+local fovStroke = Instance.new("UIStroke")
+fovStroke.Thickness = 2
+fovStroke.Parent = circle
+
+-- Rainbow
+local hue = 0
+RunService.RenderStepped:Connect(function(dt)
+    hue = (hue + dt * 0.25) % 1
+    local color = Color3.fromHSV(hue,1,1)
+    stroke.Color = color
+    fovStroke.Color = color
+end)
+
+toggle.MouseButton1Click:Connect(function()
+    enabled = not enabled
+    toggle.Text = enabled and "AIM: ON" or "AIM: OFF"
+end)
+
+fovButton.MouseButton1Click:Connect(function()
+    circle.Visible = not circle.Visible
+end)
+
+-- Minimize / restore
+local mini = Instance.new("TextButton")
+mini.Size = UDim2.fromOffset(55,55)
+mini.Position = UDim2.fromOffset(15,180)
+mini.Text = "NH"
+mini.TextColor3 = Color3.new(1,1,1)
+mini.BackgroundColor3 = Color3.fromRGB(25,25,35)
+mini.Visible = false
+mini.Parent = gui
+Instance.new("UICorner", mini).CornerRadius =
+    UDim.new(1,0)
+
+hide.MouseButton1Click:Connect(function()
+    main.Visible = false
+    mini.Visible = true
+end)
+
+mini.MouseButton1Click:Connect(function()
+    main.Visible = true
+    mini.Visible = false
+end)
+
+-- Drag menu
+local dragging = false
+local dragStart, startPos
+
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and
+    (input.UserInputType == Enum.UserInputType.MouseMovement
+    or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
